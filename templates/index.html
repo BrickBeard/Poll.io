@@ -47,7 +47,7 @@
         <p class="lead">Create free online polls for your friends and family today with Poll.io.</p>
         
         {% if not session.get('user') %}
-            <p><a class="btn btn-lg btn-success" href="{{ url_for('signup') }}" role="button">Sign up today</a></p>
+            <p><a class="btn btn-lg btn-success" href="{{ url_for('signup') }}" role="button">Sign up now</a></p>
         {% else %}
             <p><a class="btn btn-lg btn-success" href="/polls" role="button">Create a Poll</a></p>
         {% endif %}
