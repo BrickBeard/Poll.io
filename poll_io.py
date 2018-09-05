@@ -2,6 +2,7 @@ from flask import (
     Flask, render_template, request, flash, redirect, url_for, session, jsonify
 )
 from werkzeug.security import generate_password_hash, check_password_hash
+from flask_migrate import Migrate
 from models import db, Users, Polls, Topics, Options
 
 poll_io = Flask(__name__)
@@ -13,7 +14,8 @@ poll_io.config.from_object('config')
 db.init_app(poll_io)
 db.create_all(app=poll_io)
 
-# Map routes
+migrate = Migrate(poll_io, db, render_as_batch=True)
+
 
 @poll_io.route('/')
 def home():
@@ -71,21 +73,37 @@ def logout():
     
     return redirect(url_for('home'))
 
+@poll_io.route('/polls', methods=['GET'])
+def polls():
+    return render_template('polls.html')
+
 @poll_io.route('/api/polls', methods=['GET', 'POST'])
 def api_polls():
     if request.method == 'POST':
-        poll = request.get_json()
-        return "The title of the poll is {} and the options are {} and {}".format(poll['title'], *poll['options'])
-    else:
-        all_polls = {}
         
-        topics = Topics.query.all()
-        for topic in topics:
-            all_polls[topic.title] = {'options': [poll.option.name for poll in Polls.query.filter_by(topic=topic)]}
+        poll = request.get_json()
+        
+        for key, value in poll.items():
+            if not value:
+                return jsonify({'error': 'value for {} is empty.'.format(key)})
+        
+        title = poll['title']
+        options_query = lambda option : Options.query.filter(Options.name.like(option))
+        
+        options = [Polls(option=Options(name=option)) for option in poll['options']]
+        
+        db.session.add(new_topic)
+        db.session.commit()
+        
+        return jsonify({'message': 'Poll was created successfully'})
+    else:
+        polls = Topics.query.join(Polls).all()
+        all_polls = {'Polls': [poll.to_json() for poll in polls]}
+        
         return jsonify(all_polls)
-    
 
 
-if __name__ == '__main__':
-    poll_io.run(port='5001')
+# if __name__ == '__main__':
+#     poll_io.run(port='5001')
+
     
