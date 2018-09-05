@@ -1,5 +1,4 @@
 // CSS style to align text to the center of it's container
-
 var Align = {
     textAlign: 'center',
     fontFamily: 'EB Garamond'

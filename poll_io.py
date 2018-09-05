@@ -1,8 +1,8 @@
 from flask import (
-    Flask, render_template, request, flash, redirect, url_for, session
+    Flask, render_template, request, flash, redirect, url_for, session, jsonify
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from models import db, Users
+from models import db, Users, Polls, Topics, Options
 
 poll_io = Flask(__name__)
 
@@ -70,6 +70,20 @@ def logout():
         flash('We hope to see you again soon!')
     
     return redirect(url_for('home'))
+
+@poll_io.route('/api/polls', methods=['GET', 'POST'])
+def api_polls():
+    if request.method == 'POST':
+        poll = request.get_json()
+        return "The title of the poll is {} and the options are {} and {}".format(poll['title'], *poll['options'])
+    else:
+        all_polls = {}
+        
+        topics = Topics.query.all()
+        for topic in topics:
+            all_polls[topic.title] = {'options': [poll.option.name for poll in Polls.query.filter_by(topic=topic)]}
+        return jsonify(all_polls)
+    
 
 
 if __name__ == '__main__':

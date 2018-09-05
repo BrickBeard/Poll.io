@@ -20,6 +20,14 @@ class Topics(Base):
     def __repr__(self):
         return self.title
     
+    def to_json(self):
+        return {
+            'title': self.title,
+            'options':
+                [{'name': option.option.name, 'vote_count': option.vote_count}
+                    for option in self.options.all()]
+        }
+    
 # Model for poll options
 class Options(Base):
     name = db.Column(db.String(200))
