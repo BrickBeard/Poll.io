@@ -46,10 +46,8 @@
             </nav>
         </div>
         {% if session.get('user') %}
-        <p id="login-display" style="float: right; position: relative; top: -30px;">Hey
-            {{
-            session['user']
-            }}!</p>
+        <span id="login-display">Hey {{
+            session['user'] }}!</span>
         {% endif %}
 
         <div class="jumbotron">

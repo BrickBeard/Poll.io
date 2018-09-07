@@ -23,7 +23,9 @@ body {
 }
 
 #login-display {
+  float: right;
   padding-bottom: 20px;
+  position: relative;
 }
 
 /* Custom page footer */

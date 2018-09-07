@@ -56,7 +56,7 @@ var PollForm = React.createClass({
                     <br/>
                 </form>
                 <h3 style={Align}>Live Preview</h3>
-                <LivePreview options={this.state.options} />
+                <LivePreview title={this.state.title} options={this.state.options} />
             </div>
         );
     }
@@ -69,7 +69,7 @@ var LivePreview = React.createClass({
             if(option.name) {
                 return (
                     <div key={option.name}>
-                        <input type="radio" name={option.name} value={option.name} /> {option.name}
+                        <input type="radio" name="options" value={option.name} /> {option.name}
                         <br/>
                     </div>
                 );
