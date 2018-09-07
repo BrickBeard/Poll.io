@@ -1,1 +1,1 @@
-web: gunicorn poll_io:poll_io
+web: flask db upgrade; gunicorn poll_io:poll_io
