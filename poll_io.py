@@ -90,8 +90,12 @@ def api_polls():
         title = poll['title']
         options_query = lambda option : Options.query.filter(Options.name.like(option))
         
-        options = [Polls(option=Options(name=option)) for option in poll['options']]
+        options = [Polls(option=Options(name=option))
+                        if options_query(option).count() == 0
+                        else Polls(option=options_query(option).first()) for option in poll['options']]
         
+        new_topic = Topics(title=title, options=options)
+
         db.session.add(new_topic)
         db.session.commit()
         
@@ -102,8 +106,10 @@ def api_polls():
         
         return jsonify(all_polls)
 
+@poll_io.route('/api/polls/options')
+def api_polls_options():
+    all_options = [option.to_json() for option in Options.query.all()]
+    return jsonify(all_options)
 
 # if __name__ == '__main__':
 #     poll_io.run(port='5001')
-
-    

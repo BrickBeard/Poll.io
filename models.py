@@ -32,7 +32,16 @@ class Topics(Base):
     
 # Model for poll options
 class Options(Base):
-    name = db.Column(db.String(200))
+    name = db.Column(db.String(200), unique=True)
+
+    def __repr__(self):
+        return self.name
+
+    def to_json(self):
+        return {
+            'id': uuid.uuid4(),
+            'name': self.name
+        }
     
 # Polls model to connect topics and options together
 class Polls(Base):
