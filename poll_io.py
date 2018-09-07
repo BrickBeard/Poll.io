@@ -2,7 +2,7 @@ from flask import (
     Flask, render_template, request, flash, redirect, url_for, session, jsonify
 )
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_migrate import Migrate
+#from flask_migrate import Migrate
 from models import db, Users, Polls, Topics, Options
 
 poll_io = Flask(__name__)
@@ -14,7 +14,7 @@ poll_io.config.from_object('config')
 db.init_app(poll_io)
 db.create_all(app=poll_io)
 
-migrate = Migrate(poll_io, db, render_as_batch=True)
+#migrate = Migrate(poll_io, db, render_as_batch=True)
 
 
 @poll_io.route('/')
