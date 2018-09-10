@@ -3,7 +3,9 @@ from flask import (
 )
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_migrate import Migrate
-from models import db, Users, Polls, Topics, Options
+from models import db, Users, Polls, Topics, Options, UserPolls
+from flask_admin import Admin
+from admin import AdminView, TopicView
 
 poll_io = Flask(__name__)
 
@@ -12,9 +14,16 @@ poll_io.config.from_object('config')
 
 # Initialize and create Database
 db.init_app(poll_io)
-db.create_all(app=poll_io)
+#db.create_all(app=poll_io)
 
 migrate = Migrate(poll_io, db, render_as_batch=True)
+
+
+admin = Admin(poll_io, name='Dashboard', index_view=TopicView(Topics, db.session, url='/admin', endpoint='admin'))
+admin.add_view(AdminView(Polls, db.session))
+admin.add_view(AdminView(Options, db.session))
+admin.add_view(AdminView(Users, db.session))
+admin.add_view(AdminView(UserPolls, db.session))
 
 
 @poll_io.route('/')
@@ -63,7 +72,7 @@ def login():
         # User wasn't found in the database
         flash('Username or password was incorrect.  Please try again.', 'error')
     
-    return redirect(url_for('home'))
+    return redirect(request.args.get('next') or url_for('home'))
 
 @poll_io.route('/logout')
 def logout():
@@ -101,7 +110,7 @@ def api_polls():
         
         return jsonify({'message': 'Poll was created successfully'})
     else:
-        polls = Topics.query.join(Polls).all()
+        polls = Topics.query.filter_by(status=1).join(Polls).order_by(Topics.id.desc()).all()
         all_polls = {'Polls': [poll.to_json() for poll in polls]}
         
         return jsonify(all_polls)
@@ -110,6 +119,48 @@ def api_polls():
 def api_polls_options():
     all_options = [option.to_json() for option in Options.query.all()]
     return jsonify(all_options)
+
+@poll_io.route('/api/poll/vote', methods=['PATCH'])
+def api_poll_vote():
+    poll = request.get_json()
+
+    poll_title, option = (poll['poll_title'], poll['option'])
+
+    join_tables = Polls.query.join(Topics).join(Options)
+    
+    # get topic and username from the database
+    topic = Topics.query.filter_by(title=poll_title).first()
+    user = Users.query.filter_by(username=session['user']).first()
+    
+    #filter options
+    option = join_tables.filter(Topics.title.like(poll_title)).filter(Options.name.like(option)).first()
+    
+    #check if user has voted on this poll
+    poll_count = UserPolls.query.filter_by(topic_id=topic.id).filter_by(user_id=user.id).count()
+    if poll_count > 0:
+        return jsonify({'message': 'Sorry! Multiple votes are not allowed.'})
+    #increment vote_count by 1 if the option was found
+    if option:
+        user_poll = UserPolls(topic_id=topic.id, user_id=user.id)
+        db.session.add(user_poll)
+
+        option.vote_count += 1
+        db.session.commit()
+
+        return jsonify({'message': 'Thank you for voting'})
+    
+    return jsonify({'message': 'Option or poll was not found.  Please try again. '})
+
+@poll_io.route('/polls/<poll_name>')
+def poll(poll_name):
+    return render_template('index.html')
+
+@poll_io.route('/api/poll/<poll_name>')
+def api_poll(poll_name):
+    poll = Topics.query.filter(Topics.title.like(poll_name)).first()
+
+    return jsonify({'Polls': [poll.to_json()]}) if poll else jsonify({'message': 'poll not found'})
+
 
 # if __name__ == '__main__':
 #     poll_io.run(port='5001')

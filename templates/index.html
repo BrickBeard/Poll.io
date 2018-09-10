@@ -15,9 +15,17 @@
 
     <!-- Bootstrap core CSS -->
     <link type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}" rel="stylesheet">
-
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Cabin">
     <!-- IE10 viewport hack for Surface/desktop Windows 8 bug -->
     <link type="text/css" href="{{ url_for('static', filename='css/ie10-viewport-bug-workaround.css') }}" rel="stylesheet">
+    <!-- React JS -->
+    <script src="https://unpkg.com/react@15.3.2/dist/react.js"></script>
+    <script src="https://unpkg.com/react-dom@15.3.2/dist/react-dom.js"></script>
+    <script src="https://npmcdn.com/react-router@2.8.1/umd/ReactRouter.min.js"></script>
+    <script src="https://unpkg.com/babel-core@5.8.38/browser.min.js"></script>
+    <script src="https://code.jquery.com/jquery-3.1.1.min.js" integrity="sha256-hVVnYaiADRTO2PzUGmuLJr8BLUSjGIZsDYGmIJLv2b8="
+        crossorigin="anonymous"></script>
+    <script type="text/babel" src="{{ url_for('static', filename='js/polls.js') }}"></script>
 
     <!-- Custom styles for this template -->
     <link type="text/css" href="{{ url_for('static', filename='css/jumbotron-narrow.css') }}" rel="stylesheet">
@@ -29,80 +37,74 @@
 
 <body>
 
-    <div class="container">
-        <div class="header clearfix">
-            <nav>
-                <img id="logo" style="float: left;" src="{{ url_for('static', filename='images/pollio_logo.png') }}"
-                    alt="">
-                <ul class="nav nav-pills pull-right">
-                    {% if session.get('user') %}
-                    <li role='presentation'><a href="{{ url_for('logout') }}">Log Out</a></li>
-                    {% endif %}
+    <div class="header clearfix">
+        <nav>
+            <img id="logo" style="float: left;" src="{{ url_for('static', filename='images/pollio_logo.png') }}" alt="">
+            <ul class="nav nav-pills pull-right">
+                {% if session.get('user') %}
+                <li role='presentation'><a href="{{ url_for('logout') }}">Log Out</a></li>
+                {% endif %}
 
-                    <li role="presentation"><a href="/polls">Polls</a></li>
-                    <li role="presentation"><a href="https://github.com/BrickBeard/Poll.io"><img src="{{ url_for('static', filename='images/GitHub-Mark-32px.png') }}"
-                                alt=""></a></li>
-                </ul>
-            </nav>
-        </div>
-        {% if session.get('user') %}
-        <span id="login-display">Hey {{
-            session['user'] }}!</span>
+                <li role="presentation"><a href="/polls">Polls</a></li>
+                <li role="presentation"><a href="https://github.com/BrickBeard/Poll.io"><img src="{{ url_for('static', filename='images/GitHub-Mark-32px.png') }}"
+                            alt=""></a></li>
+            </ul>
+        </nav>
+    </div>
+    {% if session.get('user') %}
+    <span id="login-display">Hey {{
+        session['user'] }}!</span>
+    {% endif %}
+
+    <div class="jumbotron">
+        <h1>Simple polls with poll.io!</h1>
+        <p class="lead">Create free online polls for your friends and family today with Poll.io.</p>
+
+        {% if not session.get('user') %}
+        <p><a class="btn btn-lg btn-success" href="{{ url_for('signup') }}" role="button">Sign up now</a></p>
+        {% else %}
+        <p><a class="btn btn-lg btn-success" href="/polls" role="button">Create a Poll</a></p>
         {% endif %}
-
-        <div class="jumbotron">
-            <h1>Simple polls with poll.io!</h1>
-            <p class="lead">Create free online polls for your friends and family today with Poll.io.</p>
-
+    </div>
+    <div class="container">
+        <div class="row marketing">
             {% if not session.get('user') %}
-            <p><a class="btn btn-lg btn-success" href="{{ url_for('signup') }}" role="button">Sign up now</a></p>
+            <div class="col-lg-6">
+                <h4>Popular votes</h4>
+                <p>Voting with Poll.io couldn't be any easier. Simply create an account and you can start creating
+                    polls today for all the world to see!</p>
+            </div>
+            <div class="col-lg-6">
+                <h3 class="form-header">Login</h3>
+                <form action="{{ url_for('login', next=request.args.get('next')) }}" method="post">
+                    {% with message = get_flashed_messages(with_categories=true) %}
+                    {% if message %}
+                    {% for category, message in messages %}
+                    <p class="{{ category }}">{{ message }}</p>
+                    {% endfor %}
+                    {% endif %}
+                    {% endwith %}
+                    <div class="form-group has-success">
+                        <input type="text" class="form-control" name="username" placeholder="Username">
+                    </div>
+                    <div class="form-group has-success">
+                        <input type="password" class="form-control" name="password" placeholder="Password">
+                    </div>
+                    <button type="submit" name="submit" class="btn btn-success">Submit</button>
+                </form>
+            </div>
             {% else %}
-            <p><a class="btn btn-lg btn-success" href="/polls" role="button">Create a Poll</a></p>
+            <div id="container" class="row marketing">
+
+            </div>
             {% endif %}
         </div>
+    </div>
+    <footer class="footer">
+        <p>© 2018 BrickBeard.io, Inc.</p>
+    </footer>
 
-        <div class="row marketing">
-            {% if session.get('user') %}
-            <div class="col-lg-offset-3 col-lg-6">
-                {% else %}
-                <div class="col-lg-6">
-                    {% endif %}
-                    <h4>Popular votes</h4>
-                    <p>Voting with Poll.io couldn't be any easier. Simply create an account and you can start creating
-                        polls today for all the world to see!</p>
-                </div>
-                {% if session.get('user') %}
-                {% else %}
-                <div class="col-lg-6">
-                    <h3 class="form-header">Login</h3>
-                    <form action="{{ url_for('login') }}" method="post">
-                        {% with message = get_flashed_messages(with_categories=true) %}
-                        {% if message %}
-                        {% for category, message in messages %}
-                        <p class="{{ category }}">{{ message }}</p>
-                        {% endfor %}
-                        {% endif %}
-                        {% endwith %}
-                        <div class="form-group has-success">
-                            <input type="text" class="form-control" name="username" placeholder="Username">
-                        </div>
-                        <div class="form-group has-success">
-                            <input type="password" class="form-control" name="password" placeholder="Password">
-                        </div>
-                        <button type="submit" name="submit" class="btn btn-success">Submit</button>
-                    </form>
-                </div>
-                {% endif %}
-            </div>
-
-            <footer class="footer">
-                <p>© 2018 BrickBeard.io, Inc.</p>
-            </footer>
-
-        </div> <!-- /container -->
-
-
-        <!-- IE10 viewport hack for Surface/desktop Windows 8 bug 
+    <!-- IE10 viewport hack for Surface/desktop Windows 8 bug 
     <script src="../static/js/ie10-viewport-bug-workaround.js.download"></script>
    -->
 
