@@ -1,4 +1,6 @@
 from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.hybrid import hybrid_property
+from sqlalchemy import select, func
 import uuid
 
 # Create a new SQLAlchemy object
@@ -21,6 +23,9 @@ class Base(db.Model):
 class Topics(Base):
     title = db.Column(db.String(500))
     status = db.Column(db.Boolean, default=1)
+#    create_uid = db.Column(db.ForeignKey('users.id'))
+#    created_by = db.relationship('Users', foreign_keys=[create_uid],
+#            backref=db.backref('user_polls', lazy='dynamic'))
 
     # User friendly way to display the object
     def __repr__(self):
@@ -33,18 +38,20 @@ class Topics(Base):
                 {"name": option.option.name, "vote_count": option.vote_count}
                 for option in self.options.all()
             ],
-            "status": self.status,
+            "status": self.status
+#            'total_vote_count': self.total_vote_count
         }
 
-
-#   @hybrid_property
+#    @hybrid_property
 #    def total_vote_count(self, total=0):
 #        for option in self.options.all():
+
 #            total += option.vote_count
+
 
 #        return total
 
-# @total_vote_count.expression
+#    @total_vote_count.expression
 #    def total_vote_count(cls):
 #        return select([func.sum(Polls.vote_count)]).where(Polls.topic_id == cls.id)
 
