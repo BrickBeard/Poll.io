@@ -6,8 +6,12 @@ from flask_migrate import Migrate
 from models import db, Users, Polls, Topics, Options, UserPolls
 from flask_admin import Admin
 from admin import AdminView, TopicView
+from api.api import api
 
 poll_io = Flask(__name__)
+
+poll_io.register_blueprint(api)
+
 
 # Load config setting from config.py
 poll_io.config.from_object('config')
