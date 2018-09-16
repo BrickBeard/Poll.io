@@ -7,6 +7,23 @@ from models import db, Users, Polls, Topics, Options, UserPolls
 from flask_admin import Admin
 from admin import AdminView, TopicView
 from api.api import api
+import config
+from celery import Celery
+
+def make_celery(app):
+    celery = Celery(app.import_name, broker=config.CELERY_BROKER)
+    celery.conf.update(poll_io.config)
+    TaskBase = celery.Task 
+
+    class ContextTask(TaskBase):
+        abstract = True
+
+        def __call__(self, *args, **kwargs):
+            with app.app_context():
+                return TaskBase.__call__(self, *args, **kwargs)
+    
+    celery.Task = ContextTask
+    return celery
 
 poll_io = Flask(__name__)
 
@@ -18,10 +35,11 @@ poll_io.config.from_object('config')
 
 # Initialize and create Database
 db.init_app(poll_io)
-#db.create_all(app=poll_io)
+db.create_all(app=poll_io)
 
 migrate = Migrate(poll_io, db, render_as_batch=True)
 
+celery = make_celery(poll_io)
 
 admin = Admin(poll_io, name='Dashboard', index_view=TopicView(Topics, db.session, url='/admin', endpoint='admin'))
 admin.add_view(AdminView(Polls, db.session))
@@ -89,7 +107,7 @@ def logout():
 @poll_io.route('/polls', methods=['GET'])
 def polls():
     return render_template('polls.html')
-
+"""
 @poll_io.route('/api/polls', methods=['GET', 'POST'])
 def api_polls():
     if request.method == 'POST':
@@ -164,7 +182,7 @@ def api_poll(poll_name):
     poll = Topics.query.filter(Topics.title.like(poll_name)).first()
 
     return jsonify({'Polls': [poll.to_json()]}) if poll else jsonify({'message': 'poll not found'})
-
+"""
 
 # if __name__ == '__main__':
 #     poll_io.run(port='5001')

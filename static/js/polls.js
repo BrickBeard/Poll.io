@@ -8,10 +8,29 @@ var Align = {
   fontFamily: "EB Garamond"
 };
 var origin = window.location.origin;
+
+try {
+  var SimpleTimePicker = ReactSimpleTimePicker.SimpleTimePicker;
+} catch(err){
+  console.log(err);
+}
+
 var PollForm = React.createClass({
   getInitialState: function(e) {
     // Set initial state of form inputs
-    return { title: "", option: "", options: [], all_options: [] };
+
+    // close poll in 24 hours by default
+    var close_date = new Date();
+    close_date.setHours(close_date.getHours() + 24);
+    close_date = close_date.getTime() / 1000;
+
+    return { title: "", option: "", options: [], close_date, all_options: [] };
+  },
+
+  onDateChange: function(e){
+    var close_date = e.getTime() / 1000
+
+    this.setState({close_date: close_date})
   },
 
   handleTitleChange: function(e) {
@@ -52,12 +71,14 @@ var PollForm = React.createClass({
     e.preventDefault();
     var title = this.state.title;
     var options = this.state.options;
+    var close_date = this.state.close_date;
 
     var data = {
       title: title,
       options: options.map(function(x) {
         return x.name;
-      })
+      }),
+      close_date: close_date
     };
     var url = origin + "/api/polls";
 
@@ -124,6 +145,9 @@ var PollForm = React.createClass({
           </div>
 
           <datalist id="option">{all_options}</datalist>
+
+          <SimpleTimePicker days="7" onChange={this.onDateChange} />
+          <br />
 
           <div className="row form-group">
             <button
