@@ -31,6 +31,12 @@ def api_polls():
         db.session.add(new_topic)
         db.session.commit()
 
+        # run the task
+        from tasks import close_poll
+        
+        eta = datetime.utcfromtimestamp(poll['close_date'])
+        close_poll.apply_async((new_topic.id), eta=eta)
+
         return jsonify({"message": "Poll was created succesfully"})
 
     else:
